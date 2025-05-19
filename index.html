@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ค้นหาข้อมูลจาก Google Sheet</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 30px;
+    }
+    input {
+      width: 300px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 30px;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+  <h2>ค้นหาด้วยเลขบัตรประชาชน</h2>
+  <input type="text" id="idInput" placeholder="กรอกเลขบัตรประชาชน...">
+  <div class="result" id="resultBox"></div>
+
+  <h3>ข้อมูลทั้งหมดจาก Google Sheet</h3>
+  <div id="sheetData"></div>
+
+  <script>
+    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHT_WwmAKMKTqnOD3ZPO-KYTcTuWHs9FZgDcNYABp84xebAm0VQOz1NBdfLq3z5Ue7hxvZewV-C7ix/gviz/tq?tqx=out:json
+=out:json';
+
+    let data = [];
+
+    fetch(url)
+      .then(res => res.text())
+      .then(rep => {
+        const json = JSON.parse(rep.substring(47).slice(0, -2));
+        data = json.table.rows.map(row => {
+          return row.c.map(cell => cell ? cell.v : "");
+        });
+
+        // สร้างตารางข้อมูลทั้งหมด
+        const sheetDataDiv = document.getElementById('sheetData');
+        let html = "<table><thead><tr><th>เลขบัตร</th><th>ข้อมูล B</th><th>ข้อมูล C</th><th>ข้อมูล D</th><th>ข้อมูล E</th></tr></thead><tbody>";
+
+        data.forEach(row => {
+          html += `<tr>
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${row[3]}</td>
+            <td>${row[4]}</td>
+          </tr>`;
+        });
+
+        html += "</tbody></table>";
+        sheetDataDiv.innerHTML = html;
+      });
+
+    document.getElementById('idInput').addEventListener('input', function () {
+      const keyword = this.value.trim();
+      const resultBox = document.getElementById('resultBox');
+      const match = data.find(row => row[0] === keyword);
+
+      if (match) {
+        resultBox.innerHTML = `
+          <strong>ผลลัพธ์:</strong><br>
+          ข้อมูล B: ${match[1]}<br>
+          ข้อมูล C: ${match[2]}<br>
+          ข้อมูล D: ${match[3]}<br>
+          ข้อมูล E: ${match[4]}
+        `;
+      } else {
+        resultBox.innerHTML = keyword === "" ? "" : "ไม่พบข้อมูล";
+      }
+    });
+  </script>
+</body>
+</html>
